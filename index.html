@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twibbon Video</title>
+
+    <style>
+        .main div {
+            float: left;
+            border :1px solid #444444;
+            padding:10px;
+            margin: 10px;
+            background:#3B3B3B;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <div>
+            <label for="video">Video Input</label>
+            <input type="file" name="video" id="videoInput" accept=".mp4,.webm">
+        </div>
+
+        <div>
+            <label for="image">Image Input</label>
+            <input type="file" name="image" id="imageInput" accept=".jpg,.jpeg,.png">
+        </div>
+    
+        <div>
+            <label for="text">Text Input</label>
+            <input type="text" name="text" id="textInput">
+        </div>
+    </div>
+
+    <div class="main" onclick="play()">
+        <div>
+            <video id="video" src="twibbon.webm" loop muted autoplay="true" height="250" width="500" controls="true"></video>
+            <p style="text-align: center; color: white;">Original Video</p>
+        </div>
+        <div>
+            <canvas id="imageEditor" width="250px" height="250px"></canvas>
+            <button id="zoomIn">Zoom In</button>
+            <button id="zoomOut">Zoom Out</button>
+            <p style="text-align: center; color: white;">Image Editor</p>
+        </div>
+        <div>
+            <canvas id="c1" width="250" height="250"></canvas>
+            <canvas id="c2" width="250" height="250"></canvas>
+            <p style="text-align: center; color: white;">Edited Video</p>
+        </div>
+    </div>
+    <script src="./main.js"></script>
+    <script src="https://hammerjs.github.io/dist/hammer.min.js"></script>
+</body>
+</html>
