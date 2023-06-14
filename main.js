@@ -120,8 +120,6 @@ class ImageProcess {
             const sW = image.width * self.canvasZoom;
             const sH = image.height * self.canvasZoom;
 
-            console.log(self.sx, self.sy, sW, sH, 0, 0, self.canvas.width, self.canvas.height)
-
             self.ctx.drawImage(image, self.sx, self.sy, sW, sH, 0, 0, self.canvas.width, self.canvas.height);
         }
         this.image = image;
@@ -172,18 +170,6 @@ class ImageProcess {
 
         this.canvasPanStart.x = event.center.x / (this.canvas.width / sWidth) + this.sx;
         this.canvasPanStart.y = event.center.y / (this.canvas.height / sHeight) + this.sy;
-
-        // if(this.draw) {
-        //     const rect = this.canvas.getBoundingClientRect();
-        //     const x = event.center.x - rect.left;
-        //     const y = event.center.y - rect.top;
-
-        //     this.ctx.beginPath();
-        //     this.ctx.moveTo(x, y);
-
-        //     const x2 = (event.center.x - rect.left) / (this.canvas.width / sWidth) + this.sx;
-        //     const y2 = (event.center.y - rect.top) / (this.canvas.height / sHeight) + this.sy;
-        // }
     }
 
     onPanMove(event) {
@@ -196,7 +182,6 @@ class ImageProcess {
         const y = event.center.y / (this.canvas.height / sHeight) + this.sy;
         this.sx += (this.canvasPanStart.x - x);
         this.sy += (this.canvasPanStart.y - y) ;
-        console.log(event.center, this.canvasPanStart, this.sx, this.sy);
         this.redrawImage();
     }
 
@@ -289,6 +274,34 @@ function drawImageProp(ctx, img, x, y, w, h, offsetX, offsetY) {
     ctx.drawImage(img, cx, cy, cw, ch,  x, y, w, h);
 }
 
+function record(canvas, time) {
+    var recordedChunks = [];
+    return new Promise(function (res, rej) {
+        var stream = canvas.captureStream(25 /*fps*/);
+        mediaRecorder = new MediaRecorder(stream, {
+            mimeType: "video/webm; codecs=vp9"
+        });
+        
+        //ondataavailable will fire in interval of `time || 4000 ms`
+        mediaRecorder.start(time || 4000);
+
+        mediaRecorder.ondataavailable = function (event) {
+            recordedChunks.push(event.data);
+             // after stop `dataavilable` event run one more time
+            if (mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            }
+
+        }
+
+        mediaRecorder.onstop = function (event) {
+            var blob = new Blob(recordedChunks, {type: "video/webm" });
+            var url = URL.createObjectURL(blob);
+            res(url);
+        }
+    })
+}
+
 videoInput.addEventListener("change", () => {
     console.log('input')
     const vid = videoInput.files[0];
@@ -344,12 +357,10 @@ document.addEventListener("DOMContentLoaded", () => {
     })
 
     hammertime.on('pinchin', function(ev) {
-        console.log(ev);
         imageProcess.zoomImage(1);
     })
 
     hammertime.on('pinchout', function(ev) {
-        console.log(ev);
         imageProcess.zoomImage(-1);
     })
 });
@@ -357,3 +368,21 @@ document.addEventListener("DOMContentLoaded", () => {
 function play() {
     processor.doLoad();
 }
+
+const downloadButton = document.getElementById("downloadEditedVideo");
+downloadButton.addEventListener("click", () => {
+    const canvas = document.getElementById("c2");
+    const recording = record(canvas, 10000)
+    // play it on another video element
+    var video$ = document.createElement('video')
+    document.body.appendChild(video$)
+    recording.then(url => video$.setAttribute('src', url) )
+
+    // download it
+    var link$ = document.createElement('a')
+    link$.setAttribute('download','recordingVideo') 
+    recording.then(url => {
+        link$.setAttribute('href', url) 
+        link$.click()
+    })
+});
